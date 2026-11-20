@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+
+# Xcode — ビルド生成物とユーザーローカルデータ
+build/
+DerivedData/
+xcuserdata/
+*.xcuserstate
+*.xccheckout
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM
+*.dSYM.zip
+
+# Swift Package Manager
+.build/
+
+# 一時ファイル
+*.swp
+*~
