@@ -279,6 +279,21 @@ final class AppModel: ObservableObject {
         imageStore.delete(named: name)
     }
 
+    // MARK: - CSV 書き出し（バックアップ）
+
+    /// 全支出を CSV に書き出し、共有用の一時ファイル URL を返す。
+    /// 失敗した場合はエラーを表示して nil を返す。
+    @discardableResult
+    func makeExportFileURL() -> URL? {
+        let csv = ExpenseCSVExporter.makeCSV(expenses)
+        do {
+            return try ExpenseCSVExporter.writeTemporaryFile(csv: csv)
+        } catch {
+            present(error, prefix: "CSVの書き出しに失敗しました")
+            return nil
+        }
+    }
+
     // MARK: - 通知
 
     func showToast(

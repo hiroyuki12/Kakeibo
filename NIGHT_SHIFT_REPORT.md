@@ -1,6 +1,6 @@
 # 夜間自律開発レポート — KakeiNote
 
-最終更新: 2026-11-21 06:31（第2シフト・最終検証完了）
+最終更新: 2026-11-24 05:27（第3シフト・CSVエクスポート追加）
 対象: Kakeibo リポジトリ（KakeiNote.xcodeproj）
 
 ## 概要
@@ -12,7 +12,7 @@ Phase 1〜8 の全工程が完了し、全テストが合格しています。
 | 項目 | 結果 |
 | --- | --- |
 | ビルド | **成功**（Xcode 27.2 / iOS 27.2 SDK / iPhone 12 シミュレータ iOS 26.5） |
-| ユニットテスト | **53件 合格**（失敗 0） |
+| ユニットテスト | **61件 合格**（失敗 0） |
 | UI テスト | **6件 合格**（機能 4 件 + スクリーンショット 2 件） |
 | 対応 OS | iOS 16.0 以上（SwiftData 不使用・Core Data 採用） |
 
@@ -205,6 +205,46 @@ UI テストは `-UITEST_IN_MEMORY`（データ分離）・`-UITEST_SEED`（サ�
   ユーザーによる操作確認が必要（シミュレータでは UI テストで全フロー検証済み）
 
 ## 実行記録
+
+### 2026-11-24 第3シフト（実機データの調査とCSVエクスポート）
+
+**1. 「実機で過去のデータが表示されない」報告の調査**
+
+ユーザー報告を受けて、実機のデータコンテナを直接取り出して原因を特定した:
+
+- `devicectl device copy from --domain-type appDataContainer` で SQLite を取得
+- **データは消えていなかった**: DBに1件（本 2冊 アピタ ¥1,375・11/23 17:33登録）が存在
+- 原因: 支出入力画面（起動直後）は「今日の記録」のみ表示する設計のため、
+  翌日に開くと前日の支出がそこに出ない。データはカレンダータブの 11/23 に正常表示
+- アプリ削除の痕跡なし（バンドルコンテナ UUID が 11/21 インストール時と同一）
+- タイムスタンプから 11/23 15:16 にレシート撮影→キャンセルした形跡も確認
+
+**2. CSVエクスポート機能を実装（ユーザー選択）**
+
+アプリ削除・機種変更に備えたバックアップ手段として追加:
+
+- `Services/ExpenseCSVExporter.swift`: CSV生成（UTF-8 BOM・RFC 4180エスケープ・
+  日付昇順・一時ファイル書き出し）。Excel/Numbersで日本語がそのまま開ける
+- `Views/Components/ShareSheet.swift`: UIActivityViewController の SwiftUI ラッパー
+- `AppModel.makeExportFileURL()`: 書き出しファイル生成とエラー処理
+- カレンダー画面ヘッダーに書き出しボタン（支出ゼロ時は無効）
+- 出力項目: 日付・項目名・金額・カテゴリ・メモ・店舗名・数量・単価・登録/更新日時
+
+**3. テスト・ドキュメント・配布**
+
+- CSVユニットテスト8件追加（ヘッダー・行並び・BOM・空データ・
+  カンマ/クォート/改行エスケープ・一時ファイル・ファイル名・AppModel統合）
+- フル実行: **ユニット61件 + UI 6件 全合格**
+- README・スクリーンショット6枚を更新（書き出しボタン反映）
+- GitHubへpush、実機へインストール（既存データは保持）
+
+**変更ファイル:**
+- `KakeiNote/Services/ExpenseCSVExporter.swift`（新規）
+- `KakeiNote/Views/Components/ShareSheet.swift`（新規）
+- `KakeiNote/ViewModels/AppModel.swift`
+- `KakeiNote/Views/Calendar/CalendarView.swift`
+- `KakeiNoteTests/ExpenseCSVExporterTests.swift`（新規・8件）
+- `README.md` / `NIGHT_SHIFT_REPORT.md` / `Screenshots/`
 
 ### 2026-11-21 第2シフト（検証・安定化）
 

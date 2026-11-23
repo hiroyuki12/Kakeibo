@@ -8,6 +8,7 @@ struct CalendarView: View {
     @State private var editingExpense: Expense?
     @State private var showAddSheet = false
     @State private var expenseToDelete: Expense?
+    @State private var shareItem: ShareItem?
 
     private var statistics: MonthStatistics {
         model.statistics(for: month)
@@ -49,6 +50,9 @@ struct CalendarView: View {
         .sheet(isPresented: $showAddSheet) {
             ExpenseEditorView(expense: nil, defaultDate: selectedDay)
         }
+        .sheet(item: $shareItem) { item in
+            ShareSheet(items: [item.url])
+        }
         .alert("この支出を削除しますか？", isPresented: deleteBinding) {
             Button("削除", role: .destructive) {
                 if let expenseToDelete {
@@ -80,6 +84,34 @@ struct CalendarView: View {
             }
 
             Spacer()
+
+            Button {
+                if let url = model.makeExportFileURL() {
+                    shareItem = ShareItem(url: url)
+                    Haptics.selection()
+                } else {
+                    Haptics.error()
+                }
+            } label: {
+                Image(systemName: "square.and.arrow.up")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(
+                        model.expenses.isEmpty ? Theme.textTertiary : Theme.textPrimary
+                    )
+                    .frame(width: 38, height: 38)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(Theme.surfaceHigh)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(Theme.stroke, lineWidth: 1)
+                    )
+            }
+            .buttonStyle(PressableButtonStyle())
+            .disabled(model.expenses.isEmpty)
+            .accessibilityLabel("CSVで書き出す")
+            .accessibilityIdentifier("calendar.exportButton")
 
             Button {
                 withAnimation(.easeInOut(duration: 0.22)) {
@@ -414,6 +446,12 @@ struct CalendarView: View {
 }
 
 // MARK: - 日付セル
+
+/// CSV 書き出しファイルを共有シートへ渡すための識別子付きラッパー。
+private struct ShareItem: Identifiable {
+    let id = UUID()
+    let url: URL
+}
 
 private struct CalendarDayCell: View {
     let date: Date

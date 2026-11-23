@@ -41,6 +41,13 @@ GLM-5.3で生成
 - その場で追加・編集・削除が可能。操作後は合計が即時更新
 - 月をまたぐ移動、未来の月の閲覧にも対応
 
+### CSV 書き出し（バックアップ）
+- カレンダー画面の共有ボタンから全支出を CSV で書き出し
+- UTF-8 BOM 付きなので Excel や Numbers で日本語がそのまま開ける
+- 「ファイルに保存」「AirDrop」「メッセージ」などに渡せる
+- 出力項目：日付・項目名・金額・カテゴリ・メモ・店舗名・数量・単価・登録/更新日時
+- アプリの削除や機種変更に備えた、手軽なバックアップ手段
+
 ### カテゴリ
 食料品 / 日用品 / 外食 / 交通費 / 医療・薬 / 衣類 / 娯楽 / 光熱費 / 通信費 / その他
 
@@ -97,7 +104,7 @@ xcrun devicectl device process launch --device <UDID> com.hiroyuki.KakeiNote
 ## テスト
 
 ```bash
-# ユニットテスト（53 件）
+# ユニットテスト（61 件）
 xcodebuild test -project KakeiNote.xcodeproj -scheme KakeiNote \
   -destination 'platform=iOS Simulator,name=iPhone 12,OS=26.5' \
   -only-testing:KakeiNoteTests CODE_SIGNING_ALLOWED=NO
@@ -130,7 +137,8 @@ KakeiNote/
 ├── Services/
 │   ├── ReceiptOCRService.swift # Vision OCR と画像前処理
 │   ├── ReceiptParser.swift     # 日本語レシートの解析ヒューリスティクス
-│   └── CategoryClassifier.swift# キーワードによるカテゴリ分類
+│   ├── CategoryClassifier.swift# キーワードによるカテゴリ分類
+│   └── ExpenseCSVExporter.swift# CSV 書き出し（バックアップ）
 ├── Utilities/
 │   ├── CalendarSupport.swift   # 日付境界・月間集計
 │   └── Formatters.swift        # 金額・日付の表示
@@ -159,7 +167,7 @@ KakeiNote/
 - 実機（iPhone 12 / iOS 27.2）でのビルド・インストール・起動は確認済みです。カメラ撮影と初回許諾ダイアログは端末上で確認してください。なお無料プロファイルで署名しているため、アプリは約7日で失効します（Xcode から再ビルドで延長）。
 - 手書きレシート、複数税率が混在する複雑なレシート、極端に傾いた写真では読み取り精度が下がります。確認画面で修正するか、合計 1 件登録／手入力に切り替えられます。
 - レシートの税額行は商品明細に自動配分しません。合計と差額がある場合は「調整」明細として追加できます。
-- データのエクスポート／バックアップ機能はありません（端末内保存のみ）。
+- データの自動バックアップはありません。アプリを削除するとデータも消えるため、定期的に CSV 書き出しでバックアップしてください。
 - 動作確認は iOS 26.5 シミュレータと iOS 27.2 実機で行っています。iOS 16 の実機での表示確認は未実施です。
 
 ## 開発レポート
